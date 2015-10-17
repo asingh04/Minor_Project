@@ -76,8 +76,10 @@ class FirstExample {
                     Parsestmnttable(sql);
                     
                     if(u1.Commands.contains(cmd) && cmd!=""){
+                        
                         if(Parsestmntattribute(sql)){
                         }
+                        
                         else{
                             String warn="Malicious Query Intercepted!";
                             System.out.println(warn);
@@ -194,19 +196,24 @@ class FirstExample {
         cmd+=temp;
         System.out.println(cmd);
     }//end of statment parsing
+    
+    
     public static boolean Parsestmntattribute(String sql){
         int index;
         String att="";
-        if(cmd.substring(0,3).equals("SEL")){ 
-            p=sql.indexOf("SELECT") + 7;
-            while(sql.charAt(p)!=' '){
+        
+        if(cmd.startsWith("SEL")){
+            
+            index=sql.indexOf("SELECT") + 7;
+            
+            while(sql.charAt(index)!=' '){
                 att="";
-                while(sql.charAt(p)!=','&&sql.charAt(p)!=' '){
-                    att+=sql.charAt(p);
-                    p++;
+                while(sql.charAt(index)!=','&&sql.charAt(index)!=' '){
+                    att+=sql.charAt(index);
+                    index++;
                 }
-                if(sql.charAt(p)==',')
-                    p++;
+                if(sql.charAt(index)==',')
+                    index++;
                 
                 if(att.equals("*")){
                     att+=cmd.substring(3,6);
@@ -219,36 +226,65 @@ class FirstExample {
                 }
             }
             
-            if(sql.contains("where")){
+            if(sql.contains("WHERE")){
+                index=sql.indexOf("WHERE") + 6;
                 
-                
-                p=sql.indexOf("where");
+                while(sql.charAt(index)!=';'){
+                    
+                    att="";
+                    if(sql.charAt(index)>=48 && sql.charAt(index)<=57){ //if numeric literal
+                        
+                        while(sql.charAt(index)!=' ' && sql.charAt(index)!=';')
+                            index++;
+                    }
+                    
+                    else if(sql.charAt(index)==34){ //if "
+                        index++;
+                        while(sql.charAt(index)!=34 && sql.charAt(index)!=';')
+                            index++;
+                        index++;
+                    }
+                    
+                    else if(sql.charAt(index)==39){ // if ' found
+                        index++;
+                        while(sql.charAt(index)!=39 && sql.charAt(index)!=';')
+                            index++;
+                        index++;
+                    }
+                    
+                    else if(sql.charAt(index)=='=' || sql.charAt(index)==' '|| sql.charAt(index)=='>' || sql.charAt(index)=='<') //if = or space found
+                        index++;
+                    
+                    else{    //then attribute name OR ANY KEYWORD IS PRESENT is present
+                        
+                        while(sql.charAt(index)!=' ' && sql.charAt(index)!=';')
+                            att+=sql.charAt(index++);
+            
+                        if(att.equals("ORDER"))
+                            index+=4;
+                       
+                        else if(att.equals("ASC") || att.equals("DESC")){
+                    
+                            if(sql.substring(index).startsWith(" , "))
+                                index+=3;
+                        }
+                        else if( !att.equals("AND") && !att.equals("OR") && !att.equals("NOT") && !att.equals("BETWEEN") && !att.equals("") && !u1sel.Commands.contains(att))
+                            return false;
+                    }
+                }
             }
-            
-            
-            
-            /*
-            p = sql.indexOf("where");
-            if(p!=-1){
-                p+=6;
-                count++;
-            }
-            if(count==1)
-            {
-                
-            }*/
             return true;
         }
         else if(cmd.substring(0,3).equals("INS")){ 
-            p=sql.indexOf("SELECT") + 7;
-            while(sql.charAt(p)!=' '){
+            index=sql.indexOf("SELECT") + 7;
+            while(sql.charAt(index)!=' '){
                 att="";
-                while(sql.charAt(p)!=','&&sql.charAt(p)!=' '){
-                    att+=sql.charAt(p);
-                    p++;
+                while(sql.charAt(index)!=','&&sql.charAt(index)!=' '){
+                    att+=sql.charAt(index);
+                    index++;
                 }
-                if(sql.charAt(p)==',')
-                    p++;
+                if(sql.charAt(index)==',')
+                    index++;
                 
                 if(att.equals("*")){
                     att+=cmd.substring(3,6);
