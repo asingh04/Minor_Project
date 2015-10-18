@@ -30,16 +30,19 @@ class FirstExample {
     static String cmd="";
     static int no_of_atrb=0;
     static int count; 
-    static String[] U1={"SELCUS","INSCUS","SELWAR","SELNEW", "INSHIS","INSITE"};
+    static String[] U1={"SELCUS","INSCUS","SELWAR","SELNEW", "INSHIS","INSITE", "UPDDIS","UPDORD"};
     static String[] U1SEL={"C_ID","C_D_ID","C_W_ID",
                            "W_ID","W_NAME","W_CITY",
                            "NO_O_ID","NO_D_ID","NO_W_ID","*NEW"};
     
     static String[] U1INS={"C_FIRST","C_MIDDLE","C_LAST", "*HIS","I_ID","I_IM_ID","I_NAME"};
-    
+    static String[] U1UPD_SET= {"D_STREET_1" ,"D_STREET_2","D_CITY" ,"D_STATE","D_ZIP","OL_AMOUNT"};
+    static String[] U1UPD_WHERE = {"*DIS" , "OL_O_ID" , "OL_NUMBER"};
     static userqp u1=new userqp(U1,U1.length);
     static userqp u1sel = new userqp(U1SEL,U1SEL.length);
     static userqp  u1ins = new userqp(U1INS,U1INS.length);
+    static userqp u1upd_set = new userqp(U1UPD_SET,U1UPD_SET.length);
+    static userqp u1upd_where = new userqp(U1UPD_WHERE,U1UPD_WHERE.length);
     
     
     public static void main(String[] args){
@@ -316,6 +319,95 @@ class FirstExample {
             }
             index++;
         }
+        
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        else if(cmd.startsWith("UPD")){
+            
+            index=sql.indexOf("SET") + 4;
+            
+            while (!sql.substring(index).startsWith("WHERE") && !sql.substring(index).startsWith(";")){  
+                
+                while(sql.charAt(index)>=48 && sql.charAt(index)<=57)   //if numeric literal encountered
+                    index++;
+                
+                if(sql.charAt(index)== ' ' || sql.charAt(index)==',' || sql.charAt(index)=='=') //if space/ , / = encountered
+                    index++;
+                
+                else if(sql.charAt(index)=='\''){  //if '_________' found 
+                    index++;
+                    while(sql.charAt(index)!='\'')
+                        index++;
+                    index++;
+                }
+                
+                else if(sql.charAt(index)=='\"'){   //if "_______" 
+                    index++;
+                    while(sql.charAt(index)!='\"')
+                        index++;
+                    index++;
+                }
+                
+                else{  //IF ANY ATTRIBUTE'S NAME OR KEYWORD ENCOUNTERED
+                    
+                    att="";
+                    while(sql.charAt(index)!=' ' && sql.charAt(index)!=';')
+                        att+=sql.charAt(index++);
+                    System.out.println(att);
+                    if(!u1upd_set.Commands.contains(att) && !u1upd_set.Commands.contains("*"+cmd.substring(3, 6)))
+                        return false;
+                }
+            }
+            
+            if(sql.startsWith("WHERE")){
+                
+                index=sql.indexOf("WHERE") + 6;
+                
+                while(sql.charAt(index)!=';'){
+                    
+                    att="";
+                    if(sql.charAt(index)>=48 && sql.charAt(index)<=57){ //if numeric literal
+                        
+                        while(sql.charAt(index)!=' ' && sql.charAt(index)!=';')
+                            index++;
+                    }
+                    
+                    else if(sql.charAt(index)==34){ //if "
+                        index++;
+                        while(sql.charAt(index)!=34 && sql.charAt(index)!=';')
+                            index++;
+                        index++;
+                    }
+                    
+                    else if(sql.charAt(index)==39){ // if ' found
+                        index++;
+                        while(sql.charAt(index)!=39 && sql.charAt(index)!=';')
+                            index++;
+                        index++;
+                    }
+                    
+                    else if(sql.charAt(index)=='=' || sql.charAt(index)==' '|| sql.charAt(index)=='>' || sql.charAt(index)=='<') //if = or space found
+                        index++;
+                    
+                    else{    //then attribute name OR ANY KEYWORD IS PRESENT is present
+                        
+                        while(sql.charAt(index)!=' ' && sql.charAt(index)!=';')
+                            att+=sql.charAt(index++);
+            
+                        if(att.equals("ORDER"))
+                            index+=4;
+                       
+                        else if(att.equals("ASC") || att.equals("DESC")){
+                    
+                            if(sql.substring(index).startsWith(" , "))
+                                index+=3;
+                        }
+                        else if( !att.equals("AND") && !att.equals("OR") && !att.equals("NOT") && !att.equals("BETWEEN") && !att.equals("") && !u1sel.Commands.contains(att))
+                            return false;
+                        
+                    }
+                }
+            }
+        }//END OF COMMAND STARTING WITH UPD 
         return true;
     }//end of Parsestmntattribute
 }//end of FIrstExample class 
