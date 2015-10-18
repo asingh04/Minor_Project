@@ -30,13 +30,16 @@ class FirstExample {
     static String cmd="";
     static int no_of_atrb=0;
     static int count; 
-    static String[] U1={"SELCUS","INSCUS","SELWAR","SELNEW"};
+    static String[] U1={"SELCUS","INSCUS","SELWAR","SELNEW", "INSHIS","INSITE"};
     static String[] U1SEL={"C_ID","C_D_ID","C_W_ID",
                            "W_ID","W_NAME","W_CITY",
                            "NO_O_ID","NO_D_ID","NO_W_ID","*NEW"};
-    static String[] U1INS={"C_FIRST","C_MIDDLE","C_LAST"};
+    
+    static String[] U1INS={"C_FIRST","C_MIDDLE","C_LAST", "*HIS","I_ID","I_IM_ID","I_NAME"};
+    
     static userqp u1=new userqp(U1,U1.length);
     static userqp u1sel = new userqp(U1SEL,U1SEL.length);
+    static userqp  u1ins = new userqp(U1INS,U1INS.length);
     
     
     public static void main(String[] args){
@@ -81,13 +84,13 @@ class FirstExample {
                         }
                         
                         else{
-                            String warn="Malicious Query Intercepted!";
+                            String warn="Malicious Query Intercepted!2";
                             System.out.println(warn);
                             continue;
                         }
                     }
                     else{
-                        String warn="Malicious Query Intercepted!";
+                        String warn="Malicious Query Intercepted!1";
                         System.out.println(warn);
                         continue;
                     }
@@ -208,22 +211,19 @@ class FirstExample {
             
             while(sql.charAt(index)!=' '){
                 att="";
-                while(sql.charAt(index)!=','&&sql.charAt(index)!=' '){
-                    att+=sql.charAt(index);
-                    index++;
-                }
+                
+                while(sql.charAt(index)!=','&& sql.charAt(index)!=' ')
+                    att+=sql.charAt(index++);
+                
                 if(sql.charAt(index)==',')
                     index++;
                 
-                if(att.equals("*")){
+                if(att.equals("*"))
                     att+=cmd.substring(3,6);
-                }
-                if(u1sel.Commands.contains(att)){
-                    continue;
-                }
-                else{
+                
+                if(!u1sel.Commands.contains(att))
                     return false;
-                }
+                
             }
             
             if(sql.contains("WHERE")){
@@ -270,33 +270,51 @@ class FirstExample {
                         }
                         else if( !att.equals("AND") && !att.equals("OR") && !att.equals("NOT") && !att.equals("BETWEEN") && !att.equals("") && !u1sel.Commands.contains(att))
                             return false;
+                        
                     }
                 }
             }
-            return true;
+            //return true;
         }
-        else if(cmd.substring(0,3).equals("INS")){ 
-            index=sql.indexOf("SELECT") + 7;
-            while(sql.charAt(index)!=' '){
-                att="";
-                while(sql.charAt(index)!=','&&sql.charAt(index)!=' '){
-                    att+=sql.charAt(index);
-                    index++;
-                }
-                if(sql.charAt(index)==',')
-                    index++;
+        
+        else if(cmd.startsWith("INS")){
+            
+            index=sql.indexOf("INTO")+5; //POINTING TO STARTING OF TABLE NAME
+            
+            while(sql.charAt(index)!=' ')  //TO SKIP NA ME OF THE TABLE
+                index++;
+            index++;   //POINTS TO THE STARTING OF NEXT WORD
+            
+            if(sql.charAt(index)=='('){ //IF LIST OF ATTRIBUTES ARE PRESENT
                 
-                if(att.equals("*")){
-                    att+=cmd.substring(3,6);
+                index++;
+                att="";
+                while(sql.charAt(index)!=')'){
+                    
+                    if(sql.charAt(index)==' ')
+                        index++;
+                    
+                    else if(sql.charAt(index)==','){
+
+                        if(!u1ins.Commands.contains(att) && !u1ins.Commands.contains("*" + cmd.substring(3,6)))
+                            return false;
+                        att="";
+                        index++;
+                    }
+                    else
+                       att+=sql.charAt(index++); 
+                    
                 }
-                if(u1sel.Commands.contains(att)){
-                    continue;
-                }
-                else{
+                if( !u1ins.Commands.contains(att) && !u1ins.Commands.contains("*" + cmd.substring(3,6)) )
                     return false;
-                }
             }
-            return true;
+            
+            else{
+                att="*"+cmd.substring(3,6);
+                if(!u1ins.Commands.contains(att))
+                    return false;
+            }
+            index++;
         }
         return true;
     }//end of Parsestmntattribute
